@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <iostream>
 
 class Vector{
 private:
@@ -21,11 +22,12 @@ public:
     Vector(std::vector<float> values_int, std::string label_int);
     Vector operator+(Vector& other);
     Vector operator*(Vector& other);
-    Vector operator*(float other) {throw("Not implemented"); return *this;} // Not implemented;
-    Vector operator-(Vector& other) {throw ("Not implemented"); return *this;};
-    Vector operator-() {throw ("Not implemented"); return *this;};
-    Vector operator/(Vector& other) {throw ("Not implemented"); return *this;};
-    Vector operator^(float power) {throw ("Not implemented"); return *this;};
+    Vector operator*(float other);
+    Vector operator^(float power);
+    Vector operator-() {return *this * -1;};
+    Vector operator-(Vector& other){throw "Not implemented";}; //{return *this + (-other);};
+    Vector operator/(Vector& other){throw "Not implemented";}; // {return *this * (other ^ -1);};
+    ~Vector() {std::cout << "Destructor called for " << label << std::endl;}
 
     void backword();
     // void setName(std::string n);
