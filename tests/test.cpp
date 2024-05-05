@@ -30,6 +30,19 @@ TEST_F(NewtorchTest, AdditionTest) {
     compare_vectors(vec3.values, {6, 8, 10});
 }
 
+TEST_F(NewtorchTest, ThreeNumbersAdditionTest){
+    Vector vec3({1.0, 2.0, 3.0}, "vec3");
+    Vector vec4 = vec1 + vec2 + vec4;
+    vec4.backword();
+
+    compare_vectors(vec1.grads, {1, 1, 1});
+    compare_vectors(vec2.grads, {1, 1, 1});
+    compare_vectors(vec3.grads, {1, 1, 1});
+    compare_vectors(vec4.grads, {1, 1, 1});
+    compare_vectors(vec4.values, {7, 10, 13});
+}
+    
+
 TEST_F(NewtorchTest, MultiplicationTest) { 
     Vector vec3 = vec1 * vec2;
     vec3.backword();
@@ -54,7 +67,7 @@ TEST_F(NewtorchTest, PowerTest) {
     Vector vec3 = vec1 ^ 3;
     vec3.backword();
 
-    compare_vectors(vec1.grads, {8, 18, 32}); //2 * vec1 * vec1
+    compare_vectors(vec1.grads, {12, 27, 48}); //3 * vec1 * vec1
     compare_vectors(vec3.grads, {1, 1, 1});
     compare_vectors(vec3.values, {8, 27, 64});
 }
