@@ -40,17 +40,38 @@ std::vector<float> operator^(std::vector<float> vec, float power){
     return out;
 }
 
-// FOR VECTOR CLASS
+// BASICS FOR VECTOR CLASS
 
 Vector::Vector(std::vector<float> values_int, std::string label_int){
     values = std::move(values_int);
     grads = std::vector<float>(values.size(), 0);
-    _backword = [](){}; //empty lambda expression 
+    _backward = [](){}; //empty lambda expression 
     prev = std::tuple<std::shared_ptr<Vector>, std::shared_ptr<Vector>>(nullptr, nullptr);
     op = "";
     label = label_int;  
 }
 
+std::ostream& operator<< (std::ostream& stream, const std::shared_ptr<Vector> vector){
+    stream << vector->get_label() << " = [values[";
+    for (int i=0; i<vector->get_values().size(); i++){
+        stream << vector->get_values()[i];
+        if (i != vector->get_values().size()-1){
+            stream << ", ";
+        }
+    }
+    stream << "]";
+    stream << "  grads[";
+    for (int i=0; i<vector->get_grads().size(); i++){
+        stream << vector->get_grads()[i];
+        if (i != vector->get_grads().size()-1){
+            stream << ", ";
+        }
+    }
+    stream << "]]";
+    return stream;
+}
+
+// OPERATORS FOR VECTOR CLASS
 
 std::shared_ptr<Vector> Vector::operator+(std::shared_ptr<Vector> other) {
     std::vector<float> out_values = this->values + other->values;
@@ -59,7 +80,7 @@ std::shared_ptr<Vector> Vector::operator+(std::shared_ptr<Vector> other) {
     out->prev = std::tuple<std::shared_ptr<Vector>, std::shared_ptr<Vector>>(shared_from_this(), other);
     out->op = "+";
 
-    out->_backword = [this, other, &out](){
+    out->_backward = [this, other, &out](){
         this->grads = this->grads + (1.0 * out->grads);
         other->grads = other->grads + (1.0 * out->grads);
     };
@@ -74,7 +95,7 @@ std::shared_ptr<Vector> Vector::operator*(std::shared_ptr<Vector> other){
     out->prev = std::tuple<std::shared_ptr<Vector>, std::shared_ptr<Vector>>(shared_from_this(), other);
     out->op = "*";
 
-    out->_backword = [this, other, &out](){
+    out->_backward = [this, other, &out](){
         this->grads = this->grads + (other->values * out->grads);
         other->grads = other->grads + (this->values * out->grads);
     };
@@ -89,7 +110,7 @@ std::shared_ptr<Vector> Vector::operator*(float other){
     out->prev = std::tuple<std::shared_ptr<Vector> , std::shared_ptr<Vector>>(shared_from_this(), nullptr);
     out->op = "*";
 
-    out->_backword = [this, other, out](){ // we have memory leak here because of out and not &out
+    out->_backward = [this, other, out](){ // we have memory leak here because of out and not &out
         this->grads = this->grads + (other * out->grads);
     };
     
@@ -103,7 +124,7 @@ std::shared_ptr<Vector> Vector::operator^(float power){
     out->prev = std::tuple<std::shared_ptr<Vector>, std::shared_ptr<Vector>>(shared_from_this(), nullptr);
     out->op = "^";
 
-    out->_backword = [this, power, out](){ // we have memory leak here because of out and not &out
+    out->_backward = [this, power, out](){ // we have memory leak here because of out and not &out
         this->grads = this->grads + (power * (this->values ^ (power-1)) * out->grads);
     };
 
@@ -118,7 +139,7 @@ std::shared_ptr<Vector> Vector::operator/(std::shared_ptr<Vector> other){return 
 
 // BACKWARD PROPAGATION
 
-void build_topo(std::shared_ptr<Vector> v, std::set<std::shared_ptr<Vector>>& visited, std::stack<std::shared_ptr<Vector>>& topo){
+void Vector::build_topo(std::shared_ptr<Vector> v, std::set<std::shared_ptr<Vector>>& visited, std::stack<std::shared_ptr<Vector>>& topo){
     if (visited.find(v) == visited.end()){
         visited.insert(v);
         std::apply([&](std::shared_ptr<Vector> child1, std::shared_ptr<Vector> child2) {
@@ -130,7 +151,7 @@ void build_topo(std::shared_ptr<Vector> v, std::set<std::shared_ptr<Vector>>& vi
 }
 
 
-void Vector::backword(){
+void Vector::backward(){
     std::stack<std::shared_ptr<Vector>> topo;
     std::set<std::shared_ptr<Vector>> visited;
 
@@ -139,7 +160,7 @@ void Vector::backword(){
     this->grads = std::vector<float>(this->grads.size(), 1);
 
     while (topo.empty() == false) {
-        topo.top()->_backword();
+        topo.top()->_backward();
         topo.pop();
     }
 }
