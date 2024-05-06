@@ -1,4 +1,5 @@
 #include "vector.hpp"
+#include <cmath>
 
 // ADDITIONAL OPERATORS FOR STD::VECTOR
 
@@ -32,9 +33,9 @@ std::vector<float> operator*(float number, std::vector<float> vec1){
 
 
 std::vector<float> operator^(std::vector<float> vec, float power){
-    std::vector<float> out = std::vector<float>(vec.size(), 1.0);
-    for (int i=0; i<power; i++){
-        out = out * vec;
+    std::vector<float> out = std::vector<float>(vec.size(), 0);
+    for (int i=0; i<out.size(); i++){
+        out[i] = std::pow(vec[i], power);
     }
     return out;
 }
@@ -51,19 +52,19 @@ Vector::Vector(std::vector<float> values_int, std::string label_int){
 }
 
 
-// Vector Vector::operator+(Vector& other) {
-//     std::vector<float> out_values = this->values + other.values;
+std::shared_ptr<Vector> Vector::operator+(std::shared_ptr<Vector> other) {
+    std::vector<float> out_values = this->values + other->values;
 
-//     Vector out = Vector(out_values, "out");
-//     out.prev = std::tuple<Vector*, Vector*>(this, &other);
-//     out.op = "+";
+    std::shared_ptr<Vector> out = std::make_shared<Vector>(out_values,  this->label + "+" + other->label);
+    out->prev = std::tuple<std::shared_ptr<Vector>, std::shared_ptr<Vector>>(shared_from_this(), other);
+    out->op = "+";
 
-//     out._backword = [&](){
-//         this->grads = this->grads + (1.0 * out.grads);
-//         other.grads = other.grads + (1.0 * out.grads);
-//     };
-//     return out;
-// }
+    out->_backword = [this, other, &out](){
+        this->grads = this->grads + (1.0 * out->grads);
+        other->grads = other->grads + (1.0 * out->grads);
+    };
+    return out;
+}
 
 std::shared_ptr<Vector> Vector::operator*(std::shared_ptr<Vector> other){
     
@@ -81,52 +82,41 @@ std::shared_ptr<Vector> Vector::operator*(std::shared_ptr<Vector> other){
     return out;
 }
 
+std::shared_ptr<Vector> Vector::operator*(float other){
+    std::vector<float> out_values = other * this->values;
 
+    std::shared_ptr<Vector> out = std::make_shared<Vector>(out_values,  this->label + "*" + std::to_string(other));
+    out->prev = std::tuple<std::shared_ptr<Vector> , std::shared_ptr<Vector>>(shared_from_this(), nullptr);
+    out->op = "*";
 
-// Vector Vector::operator*(Vector& other){
+    out->_backword = [this, other, out](){ // we have memory leak here because of out and not &out
+        this->grads = this->grads + (other * out->grads);
+    };
     
-//     std::vector<float> out_values = this->values * other.values;
+    return out;
+}
 
-//     Vector out = Vector(out_values,  this->label + "*" + other.label);
-//     out.prev = std::tuple<Vector*, Vector*>(this, &other);
-//     out.op = "*";
+std::shared_ptr<Vector> Vector::operator^(float power){
+    std::vector<float> out_values = this->values ^ power;
 
-//     out._backword = [&](){
-//         this->grads = this->grads + (other.values * out.grads);
-//         other.grads = other.grads + (this->values * out.grads);
-//     };
-    
-//     return out;
-// }
+    std::shared_ptr<Vector> out = std::make_shared<Vector>(out_values, this->label + "^" + std::to_string(power));
+    out->prev = std::tuple<std::shared_ptr<Vector>, std::shared_ptr<Vector>>(shared_from_this(), nullptr);
+    out->op = "^";
 
-// Vector Vector::operator*(float other){
-//     std::vector<float> out_values = other * this->values;
+    out->_backword = [this, power, out](){ // we have memory leak here because of out and not &out
+        this->grads = this->grads + (power * (this->values ^ (power-1)) * out->grads);
+    };
 
-//     Vector out = Vector(out_values, this->label + "*" + std::to_string(other));
-//     out.prev = std::tuple<Vector*, Vector*>(this, nullptr);
-//     out.op = "*";
+    return out;
+}
 
-//     out._backword = [&, other](){
-//         this->grads = this->grads + (other * out.grads);
-//     };
-    
-//     return out;
-// }
+std::shared_ptr<Vector> Vector::operator-(){return shared_from_this() * -1.0;};
 
-// Vector Vector::operator^(float power){
-//     std::vector<float> out_values = this->values ^ power;
+std::shared_ptr<Vector> Vector::operator-(std::shared_ptr<Vector> other){return shared_from_this() + -other;};
+std::shared_ptr<Vector> Vector::operator/(std::shared_ptr<Vector> other){return shared_from_this() * (other ^ (-1));};
 
-//     Vector out = Vector(out_values, "out");
-//     out.prev = std::tuple<Vector*, Vector*>(this, nullptr);
-//     out.op = "^";
 
-//     out._backword = [&](){
-//         this->grads = this->grads + (power * (this->values ^ (power-1)) * out.grads);
-//     };
-
-//     return out;
-// }
-
+// BACKWARD PROPAGATION
 
 void build_topo(std::shared_ptr<Vector> v, std::set<std::shared_ptr<Vector>>& visited, std::stack<std::shared_ptr<Vector>>& topo){
     if (visited.find(v) == visited.end()){
@@ -147,6 +137,7 @@ void Vector::backword(){
     build_topo(shared_from_this(), visited, topo);
     
     this->grads = std::vector<float>(this->grads.size(), 1);
+
     while (topo.empty() == false) {
         topo.top()->_backword();
         topo.pop();

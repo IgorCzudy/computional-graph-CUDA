@@ -30,23 +30,46 @@ public:
     Vector() {}  // Default constructor for initialization
     Vector(std::vector<float> values_int, std::string label_int);
     
-    Vector operator+(Vector& other){throw "Not implemented";};;
+    std::shared_ptr<Vector> operator+(std::shared_ptr<Vector> other);
     std::shared_ptr<Vector> operator*(std::shared_ptr<Vector> other);
-    Vector operator*(float other){throw "Not implemented";};;
-    Vector operator^(float power){throw "Not implemented";};;
-    Vector operator-() {return *this * -1;};
-    Vector operator-(Vector& other){throw "Not implemented";}; //{return *this + (-other);};
-    Vector operator/(Vector& other){throw "Not implemented";}; // {return *this * (other ^ -1);};
-    ~Vector() {std::cout << "Destructor called for " << label << std::endl;}
+    std::shared_ptr<Vector> operator*(float other);
+    std::shared_ptr<Vector> operator^(float power);
+    std::shared_ptr<Vector> operator-();
+    std::shared_ptr<Vector> operator-(std::shared_ptr<Vector> other);
+    std::shared_ptr<Vector> operator/(std::shared_ptr<Vector> other);
+    ~Vector() {/*std::cout << "Destructor called for " << label << std::endl;*/}
 
     void backword();
-    // void setName(std::string n);
-    // void setAge(int a);
-    // void displayInfo();
 };
+
 
 inline std::shared_ptr<Vector> operator*(const std::shared_ptr<Vector>& lhs, const std::shared_ptr<Vector>& rhs) {
     return (*lhs) * rhs;
 }
+
+inline std::shared_ptr<Vector> operator+(const std::shared_ptr<Vector>& lhs, const std::shared_ptr<Vector>& rhs) {
+    return (*lhs) + rhs;
+}
+
+inline std::shared_ptr<Vector> operator*(const std::shared_ptr<Vector>& lhs, const float rhs) {
+    return (*lhs) * rhs;
+}
+
+inline std::shared_ptr<Vector> operator^(const std::shared_ptr<Vector>& lhs, const float power) {
+    return (*lhs) ^ power;
+}
+
+inline std::shared_ptr<Vector> operator-(const std::shared_ptr<Vector>& num) {
+    return -(*num);
+}
+
+inline std::shared_ptr<Vector> operator-(const std::shared_ptr<Vector>& lhs, const std::shared_ptr<Vector>& rhs) {
+    return (*lhs) - rhs;
+}
+
+inline std::shared_ptr<Vector> operator/(const std::shared_ptr<Vector>& lhs, const std::shared_ptr<Vector>& rhs) {
+    return (*lhs) / rhs;
+}
+
 
 #endif //  VECTOR_HPP
