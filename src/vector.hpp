@@ -11,25 +11,26 @@
 #include <tuple>
 
 
-
 class Vector : public std::enable_shared_from_this<Vector>{
 private:
     std::string op;
     std::string label;
-    std::function<void()> _backword;
-
-    // void build_topo(std::set<Vector*>& visited, std::stack<Vector*>& topo);
-
-public:
-    std::tuple<std::shared_ptr<Vector>, std::shared_ptr<Vector>> prev;
+    std::function<void()> _backward;
     std::vector<float> values;
     std::vector<float> grads;
 
+    static void build_topo(std::shared_ptr<Vector> v, std::set<std::shared_ptr<Vector>>& visited, std::stack<std::shared_ptr<Vector>>& topo);
+    std::tuple<std::shared_ptr<Vector>, std::shared_ptr<Vector>> prev;
 
 public:
-    Vector() {}  // Default constructor for initialization
     Vector(std::vector<float> values_int, std::string label_int);
     
+    std::vector<float> get_values(){return values;}
+    std::vector<float> get_grads(){return grads;}
+    std::string get_label(){return label;}
+    
+    void backward();
+
     std::shared_ptr<Vector> operator+(std::shared_ptr<Vector> other);
     std::shared_ptr<Vector> operator*(std::shared_ptr<Vector> other);
     std::shared_ptr<Vector> operator*(float other);
@@ -37,11 +38,20 @@ public:
     std::shared_ptr<Vector> operator-();
     std::shared_ptr<Vector> operator-(std::shared_ptr<Vector> other);
     std::shared_ptr<Vector> operator/(std::shared_ptr<Vector> other);
-    ~Vector() {/*std::cout << "Destructor called for " << label << std::endl;*/}
 
-    void backword();
+    ~Vector() {/*std::cout << "Destructor called for " << label << std::endl;*/}
 };
 
+
+std::ostream& operator<< (std::ostream& stream, const std::shared_ptr<Vector> vector);
+
+inline std::shared_ptr<Vector> create_vector(std::vector<float> values, std::string label)
+{
+    return std::make_shared<Vector>(values, label);
+
+}
+
+// OPERATORS
 
 inline std::shared_ptr<Vector> operator*(const std::shared_ptr<Vector>& lhs, const std::shared_ptr<Vector>& rhs) {
     return (*lhs) * rhs;
