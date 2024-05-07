@@ -9,13 +9,13 @@ int main() {
         std::shared_ptr<Vector> vector2 = create_vector({4.0}, "vec2");
         std::shared_ptr<Vector> vector3 = create_vector({-1.0}, "vec3");
 
-        std::shared_ptr<Vector> result = vector1 + vector2 * vector3 ;
+        std::shared_ptr<Vector> vector4 = vector1 + vector2 * vector3 ;
         
-        result->backward();
+        vector4->backward();
         std::cout << vector1 << std::endl;
         std::cout << vector2 << std::endl;
         std::cout << vector3 << std::endl;
-        std::cout << result << std::endl;
+        std::cout << vector4 << std::endl;
 
     }
     catch(const char* msg){
