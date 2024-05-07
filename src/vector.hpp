@@ -20,6 +20,7 @@ private:
     std::vector<float> grads;
 
     static void build_topo(std::shared_ptr<Vector> v, std::set<std::shared_ptr<Vector>>& visited, std::stack<std::shared_ptr<Vector>>& topo);
+    static void zero_lambda(Vector* v, std::set<Vector*> visited);
     std::tuple<std::shared_ptr<Vector>, std::shared_ptr<Vector>> prev;
 
 public:
@@ -39,7 +40,7 @@ public:
     std::shared_ptr<Vector> operator-(std::shared_ptr<Vector> other);
     std::shared_ptr<Vector> operator/(std::shared_ptr<Vector> other);
 
-    ~Vector() {/*std::cout << "Destructor called for " << label << std::endl;*/}
+    ~Vector();
 };
 
 
