@@ -71,6 +71,23 @@ std::ostream& operator<< (std::ostream& stream, const std::shared_ptr<Vector> ve
     return stream;
 }
 
+void Vector::zero_lambda(Vector* v, std::set<Vector*> visited){
+    if (visited.find(v) == visited.end()){
+        visited.insert(v);
+        v -> _backward = [](){}; //empty lambda expression to avoid memory leak
+        std::apply([&](std::shared_ptr<Vector> child1, std::shared_ptr<Vector> child2) {
+            if (child1 != nullptr) zero_lambda(child1.get(), visited);
+            if (child2 != nullptr) zero_lambda(child2.get(), visited);
+        }, v->prev);
+    }
+}
+
+Vector::~Vector(){
+    // std::cout << "Destructor called for " << label << std::endl;
+    std::set<Vector*> visited;
+    zero_lambda(this, visited);
+}
+
 // OPERATORS FOR VECTOR CLASS
 
 std::shared_ptr<Vector> Vector::operator+(std::shared_ptr<Vector> other) {
