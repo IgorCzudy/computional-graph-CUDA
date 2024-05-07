@@ -4,26 +4,53 @@
 // ADDITIONAL OPERATORS FOR STD::VECTOR
 
 std::vector<float> operator+(const std::vector<float>& vec1, const std::vector<float>& vec2){
-    if (vec1.size() != vec2.size()){
-        throw "Vectors must have the same size in order to add them";
+    if (vec1.size() == vec2.size()){
+        std::vector<float> out = std::vector<float>(vec1.size(), 0);
+
+        for (int i=0; i<out.size(); i++){
+            out[i] = vec1[i] + vec2[i];
+        }
+        return out;
     }
-    std::vector<float> out = std::vector<float>(vec1.size(), 0);
-    for (int i=0; i<out.size(); i++){
-        out[i] = vec1[i] + vec2[i];
+
+    if (vec1.size() == 1 && vec2.size() > 1){
+        std::vector<float> broadcasted = std::vector<float>(vec2.size(), vec1[0]);
+        return broadcasted + vec2;
     }
-    return out;
+
+    if (vec2.size() == 1 && vec1.size() > 1){
+        std::vector<float> broadcasted = std::vector<float>(vec1.size(), vec2[0]);
+        return broadcasted + vec1;
+    }
+
+    throw "Vectors must have the same size or one must be size 1 in order to add them";
+    return std::vector<float>(0);
 }
 
 
 std::vector<float> operator*(std::vector<float> vec1, std::vector<float> vec2){
-    if (vec1.size() != vec2.size()){
-        throw "Vectors must have the same size in order to multiply them";
+    if (vec1.size() == vec2.size()){
+        std::vector<float> out = std::vector<float>(vec1.size(), 0);
+
+        for (int i=0; i<out.size(); i++){
+            out[i] = vec1[i] * vec2[i];
+        }
+        return out;
     }
-    std::vector<float> out = std::vector<float>(vec1.size(), 0);
-    for (int i=0; i<out.size(); i++){
-        out[i] = vec1[i] * vec2[i];
+
+    if (vec1.size() == 1 && vec2.size() > 1){
+        std::vector<float> broadcasted = std::vector<float>(vec2.size(), vec1[0]);
+        return broadcasted * vec2;
     }
-    return out;
+
+    if (vec2.size() == 1 && vec1.size() > 1){
+        std::vector<float> broadcasted = std::vector<float>(vec1.size(), vec2[0]);
+        return broadcasted * vec1;
+    }
+
+    throw "Vectors must have the same size or one must be size 1 in order to multiply them";
+    return std::vector<float>(0);
+
 }
 
 
